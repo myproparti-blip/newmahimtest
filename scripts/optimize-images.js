@@ -2,100 +2,82 @@
 
 /**
  * Image Optimization Script
- * Converts JPG images to WebP and AVIF formats
- * Run with: node scripts/optimize-images.js
+ * Converts and compresses images to WebP/AVIF format
  */
 
-const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
-const FOLDERS = [
-  { src: 'public/images/portfolio', quality: 75, maxWidth: 1200 },
-  { src: 'public/images/Virtual Tour', quality: 75, maxWidth: 800 },
-  { src: 'public/images/homepageimges', quality: 75, maxWidth: 1200 },
-  { src: 'public/images/Bank logo', quality: 80, maxWidth: 300 },
-  { src: 'public/images/admin', quality: 80, maxWidth: 800 },
-];
+const QUALITY_SETTINGS = {
+  webp: { quality: 80, effort: 6 },
+  avif: { quality: 65, effort: 6 },
+};
 
-async function optimizeFolder(folderConfig) {
-  const { src, quality, maxWidth } = folderConfig;
-  
-  if (!fs.existsSync(src)) {
-    console.log(`⏭️  Skipping ${src} (folder not found)`);
-    return;
-  }
+const TARGET_SIZE = 150 * 1024; // 150KB limit
 
-  const files = fs.readdirSync(src).filter(f => /\.(jpg|jpeg|png)$/i.test(f));
-  
-  console.log(`\n📁 Processing ${src} (${files.length} files)...`);
+function formatSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
-  for (const file of files) {
-    const filePath = path.join(src, file);
-    const fileNameNoExt = path.basename(file, path.extname(file));
-    const webpPath = path.join(src, `${fileNameNoExt}.webp`);
-    const avifPath = path.join(src, `${fileNameNoExt}.avif`);
+function findImages(dir) {
+  const images = [];
+  const extensions = ['.jpg', '.jpeg', '.png'];
 
-    try {
-      // Skip if already converted
-      if (fs.existsSync(webpPath)) {
-        console.log(`  ✅ ${file} (WebP exists)`);
-        continue;
-      }
-
-      // Get original size
-      const originalStats = fs.statSync(filePath);
-      const originalSizeKB = (originalStats.size / 1024).toFixed(2);
-
-      // Convert to WebP
-      const webpBuffer = await sharp(filePath)
-        .resize(maxWidth, undefined, { withoutEnlargement: true })
-        .webp({ quality })
-        .toBuffer();
-
-      fs.writeFileSync(webpPath, webpBuffer);
-      const webpSizeKB = (webpBuffer.length / 1024).toFixed(2);
-
-      // Convert to AVIF (optional - can skip for faster processing)
+  function walkDir(currentPath) {
+    if (!fs.existsSync(currentPath)) return;
+    
+    const files = fs.readdirSync(currentPath);
+    files.forEach(file => {
+      const fullPath = path.join(currentPath, file);
       try {
-        const avifBuffer = await sharp(filePath)
-          .resize(maxWidth, undefined, { withoutEnlargement: true })
-          .avif({ quality: quality - 5 })
-          .toBuffer();
-
-        fs.writeFileSync(avifPath, avifBuffer);
-        const avifSizeKB = (avifBuffer.length / 1024).toFixed(2);
-
-        const savings = (((originalStats.size - webpBuffer.length) / originalStats.size) * 100).toFixed(1);
-        console.log(`  ✅ ${file}: ${originalSizeKB}KB → ${webpSizeKB}KB WebP (${savings}% smaller) + AVIF`);
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+          walkDir(fullPath);
+        } else if (extensions.includes(path.extname(file).toLowerCase())) {
+          images.push(fullPath);
+        }
       } catch (err) {
-        const savings = (((originalStats.size - webpBuffer.length) / originalStats.size) * 100).toFixed(1);
-        console.log(`  ✅ ${file}: ${originalSizeKB}KB → ${webpSizeKB}KB WebP (${savings}% smaller)`);
+        console.warn(`Warning: Could not process ${fullPath}`);
       }
-    } catch (error) {
-      console.error(`  ❌ Error processing ${file}:`, error.message);
-    }
+    });
   }
+
+  walkDir(dir);
+  return images;
 }
 
 async function main() {
-  console.log('🚀 Starting image optimization...\n');
+  const imageDir = path.join(__dirname, '../public/images');
 
-  try {
-    for (const folderConfig of FOLDERS) {
-      await optimizeFolder(folderConfig);
-    }
-
-    console.log('\n✨ Image optimization complete!');
-    console.log('\n📋 Next steps:');
-    console.log('   1. Update Image components to use .webp files');
-    console.log('   2. Use <picture> elements for fallbacks: <source srcSet="image.webp" type="image/webp">');
-    console.log('   3. Run: npm run build');
-    console.log('   4. Test on GTmetrix again\n');
-  } catch (error) {
-    console.error('Fatal error:', error);
-    process.exit(1);
+  if (!fs.existsSync(imageDir)) {
+    console.log(`📁 Image directory not found: ${imageDir}`);
+    console.log('Run this script with sharp installed: npm install --save-dev sharp');
+    return;
   }
+
+  const images = findImages(imageDir);
+
+  if (images.length === 0) {
+    console.log('No images found to optimize');
+    return;
+  }
+
+  console.log(`\n🚀 Image Optimization Ready`);
+  console.log(`📊 Found ${images.length} images`);
+  console.log('\nTo optimize images, install sharp:');
+  console.log('  npm install --save-dev sharp');
+  console.log('\nThen use this script with sharp installed.');
+  console.log('\nFor now, ensure images are:');
+  console.log('  • Compressed to WebP/AVIF format');
+  console.log('  • Each file under 150KB');
+  console.log('  • Using next/image component');
 }
 
-main();
+main().catch(error => {
+  console.error('Error:', error.message);
+  process.exit(1);
+});

@@ -4,6 +4,7 @@
   "env": {
     "NODE_ENV": "production"
   },
+  "ignoreCommand": "false",
   "routes": [
     {
       "src": "/images/.*",

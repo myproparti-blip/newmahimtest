@@ -1,0 +1,7 @@
+REDEPLOY_TIMESTAMP=2026-03-02T15:26:00Z
+COMMIT=35a9492
+STATUS=FIX_APPLIED
+
+PostCSS configuration fixed for Tailwind CSS v4.
+All files verified and committed.
+Build tested locally - SUCCESS

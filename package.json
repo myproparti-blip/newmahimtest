@@ -7,7 +7,9 @@
     "postbuild": "next-sitemap",
     "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "next start",
+    "optimize-images": "node scripts/optimize-images.js",
+    "analyze": "ANALYZE=true npm run build"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

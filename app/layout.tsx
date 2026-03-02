@@ -11,6 +11,8 @@ const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
+  weight: ["400", "600", "700"],
+  preload: true,
 })
 
 export const metadata: Metadata = {
@@ -243,24 +245,30 @@ export default function RootLayout({
   return (
     <html lang="en-IN" className={`${inter.variable} antialiased`}>
       <head>
-        {/* JSON-LD Organization Schema */}
-        <JsonLd data={getOrganizationSchema()} />
+         {/* Preconnect to critical external domains */}
+         <link rel="preconnect" href="https://fonts.googleapis.com" />
+         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+         <link rel="preconnect" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com" />
+         <link rel="preconnect" href="https://images.unsplash.com" />
+         
+         {/* DNS prefetch for analytics */}
+         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+         <link rel="dns-prefetch" href="https://cdn.vercel-insights.com" />
 
-        {/* Google Search Console Verification */}
-        <meta name="google-site-verification" content="NdpqGNyZe2LJXw5qeWCc5unMjsGWS9zrIeRQl0T_UDY" />
+         {/* JSON-LD Organization Schema */}
+         <JsonLd data={getOrganizationSchema()} />
 
-        {/* Additional Meta Tags */}
-        <meta name="application-name" content="Mahim Architects" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Mahim Architects" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="mobile-web-app-capable" content="yes" />
+         {/* Google Search Console Verification */}
+         <meta name="google-site-verification" content="NdpqGNyZe2LJXw5qeWCc5unMjsGWS9zrIeRQl0T_UDY" />
 
-        {/* Preconnect to external domains */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
+         {/* Additional Meta Tags */}
+         <meta name="application-name" content="Mahim Architects" />
+         <meta name="apple-mobile-web-app-capable" content="yes" />
+         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+         <meta name="apple-mobile-web-app-title" content="Mahim Architects" />
+         <meta name="theme-color" content="#000000" />
+         <meta name="mobile-web-app-capable" content="yes" />
+       </head>
       <body className="font-sans bg-neutral-50 text-neutral-900 overflow-x-hidden">
         <script
           type="application/ld+json"
